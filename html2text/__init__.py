@@ -966,8 +966,21 @@ class HTML2Mrkdwn(HTML2Text):
         self.ul_item_mark = "-"  # covered in cli
         self.strong_mark = "*"
         self.strike_mark = "~"
-        self.protect_links = True
 
+
+    def replace_links(self, data: str):
+        regex = r'((\[(?P<link_text>[^\]]+)\])(\((?P<link>[^ \)]+)\)))'
+
+        for match in re.findall(regex, data):
+            print(match)
+            data = data.replace(match[0], f"<{match[4]}|{match[2]}>")
+            print(data)
+
+        return data
+
+    def handle(self, data: str):
+        result = super().handle(data)
+        return self.replace_links(result)
 
 def html2mrkdwn(html: str, baseurl: str = "", bodywidth: Optional[int] = None) -> str:
     if bodywidth is None:
