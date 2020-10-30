@@ -72,6 +72,7 @@ class HTML2Text(html.parser.HTMLParser):
         self.ul_item_mark = "*"  # covered in cli
         self.emphasis_mark = "_"  # covered in cli
         self.strong_mark = "**"
+        self.strike_mark = "~~"
         self.single_line_break = config.SINGLE_LINE_BREAK  # covered in cli
         self.use_automatic_links = config.USE_AUTOMATIC_LINKS  # covered in cli
         self.hide_strikethrough = False  # covered in cli
@@ -83,6 +84,7 @@ class HTML2Text(html.parser.HTMLParser):
         self.tag_callback = None
         self.open_quote = config.OPEN_QUOTE  # covered in cli
         self.close_quote = config.CLOSE_QUOTE  # covered in cli
+
 
         if out is None:
             self.out = self.outtextf
@@ -416,9 +418,9 @@ class HTML2Text(html.parser.HTMLParser):
 
         if tag in ["del", "strike", "s"]:
             if start and no_preceding_space(self):
-                strike = " ~~"
+                strike = " "+self.strike_mark
             else:
-                strike = "~~"
+                strike = self.strike_mark
 
             self.o(strike)
             if start:
@@ -943,5 +945,33 @@ def html2text(html: str, baseurl: str = "", bodywidth: Optional[int] = None) -> 
     if bodywidth is None:
         bodywidth = config.BODY_WIDTH
     h = HTML2Text(baseurl=baseurl, bodywidth=bodywidth)
+
+    return h.handle(html)
+
+
+class HTML2Mrkdwn(HTML2Text):
+
+
+    def __init__(
+        self,
+        **kwargs
+    ) -> None:
+        """
+        Input parameters:
+            out: possible custom replacement for self.outtextf (which
+                 appends lines of text).
+            baseurl: base URL of the document we process
+        """
+        super().__init__(**kwargs)
+        self.ul_item_mark = "-"  # covered in cli
+        self.strong_mark = "*"
+        self.strike_mark = "~"
+        self.protect_links = True
+
+
+def html2mrkdwn(html: str, baseurl: str = "", bodywidth: Optional[int] = None) -> str:
+    if bodywidth is None:
+        bodywidth = config.BODY_WIDTH
+    h = HTML2Mrkdwn(baseurl=baseurl, bodywidth=bodywidth)
 
     return h.handle(html)
